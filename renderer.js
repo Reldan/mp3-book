@@ -13,17 +13,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  // Загружаем последний проигрываемый файл и его позицию
+  // Загружаем последний проигрываемый файл
   const lastTrack = localStorage.getItem('lastTrack');
-  const lastPosition = localStorage.getItem('lastPosition');
+  const lastPosition = parseFloat(localStorage.getItem('lastPosition')) || 0;
   if (lastTrack) {
-    const audioPlayer = document.getElementById('audioPlayer');
-    const fileUrl = 'file://' + lastTrack;
-    audioPlayer.src = fileUrl;
-    audioPlayer.currentTime = parseFloat(lastPosition) || 0;
-    audioPlayer.play();
-    document.getElementById('currentTrack').textContent = `Сейчас играет: ${lastTrack}`;
-    highlightCurrentTrack(lastTrack); // Подсвечиваем текущий трек
+    const playlist = document.getElementById('playlist');
+    const items = Array.from(playlist.querySelectorAll('li'));
+    const index = items.findIndex(item => item.dataset.fullPath === lastTrack);
+    playTrack(lastTrack, index, lastPosition);
   }
 
   // Загружаем историю прослушивания
@@ -44,15 +41,20 @@ function loadPlaylist(files) {
 }
 
 // Функция для проигрывания файла
-function playTrack(file, index) {
+function playTrack(file, index, startFrom = 0) {
   const audioPlayer = document.getElementById('audioPlayer');
   // Преобразуем путь к файлу в URL формат
   const fileUrl = 'file://' + file;
   audioPlayer.src = fileUrl;
-  audioPlayer.play();
-  localStorage.setItem('lastTrack', file);  // Сохраняем путь последнего файла
-  localStorage.setItem('lastPosition', 0); // Сброс позиции при новом треке
-  currentTrackIndex = index;  // Обновляем индекс текущего трека
+  
+  audioPlayer.onloadedmetadata = () => {
+    const position = startFrom ? Math.max(0, startFrom - 10) : 0;
+    audioPlayer.currentTime = position;
+    audioPlayer.play();
+  };
+
+  localStorage.setItem('lastTrack', file);
+  if (index >= 0) currentTrackIndex = index;
   document.getElementById('currentTrack').textContent = `Сейчас играет: ${file}`;
 
   // Подсвечиваем выбранный файл
@@ -62,6 +64,7 @@ function playTrack(file, index) {
   audioPlayer.ontimeupdate = () => {
     localStorage.setItem('lastPosition', audioPlayer.currentTime);
   };
+
 
   // Логируем начало прослушивания
   const startTime = new Date().toISOString();
