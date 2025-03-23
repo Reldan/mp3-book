@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Музыкальный плеер</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #222;
+      color: white;
+      margin: 0;
+      padding: 0;
+    }
+
+    #playerContainer {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+
+    #audioPlayer {
+      width: 100%;
+      max-width: 600px;
+      margin-bottom: 20px;
+    }
+
+    #currentTrack {
+      font-size: 16px;
+      margin-top: 10px;
+      color: #bbb;
+    }
+
+    #playlist {
+      list-style-type: none;
+      padding: 0;
+      width: 100%;
+      max-width: 600px;
+    }
+
+    #playlist li {
+      background-color: #333;
+      padding: 10px;
+      margin: 5px 0;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+
+    #playlist li:hover {
+      background-color: #444;
+    }
+
+    #playlist li.selected {
+      background-color: #555;
+    }
+
+    #selectFolder {
+      background-color: #444;
+      padding: 10px;
+      margin-top: 20px;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+
+    #selectFolder:hover {
+      background-color: #555;
+    }
+  </style>
+</head>
+<body>
+  <div id="playerContainer">
+    <audio id="audioPlayer" controls></audio>
+    <div id="currentTrack">Сейчас играет: нет</div>
+    <button id="selectFolder">Выбрать папку</button>
+    <ul id="playlist"></ul>
+  </div>
+  
+  <script src="renderer.js"></script>
+</body>
+</html>

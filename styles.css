@@ -1,0 +1,65 @@
+/* styles.css */
+body {
+    background-color: #121212;
+    font-family: Arial, sans-serif;
+    color: white;
+    margin: 0;
+    padding: 0;
+  }
+  
+  #player {
+    width: 400px;
+    margin: 50px auto;
+    background-color: #1e1e1e;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.7);
+  }
+  
+  #header {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  h1 {
+    font-size: 24px;
+    color: #f9c10d;
+  }
+  
+  #controls {
+    text-align: center;
+  }
+  
+  #playlist-container {
+    margin-top: 20px;
+  }
+  
+  #playlist {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  #playlist li {
+    padding: 10px;
+    background-color: #282828;
+    margin: 5px 0;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  #playlist li:hover {
+    background-color: #f9c10d;
+  }
+  
+  #playlist li.selected {
+    background-color: #f9c10d;
+    color: #121212;
+  }
+  
+  #currentTrack {
+    font-size: 16px;
+    color: #f9c10d;
+    text-align: center;
+    margin-top: 20px;
+  }
