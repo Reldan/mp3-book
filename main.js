@@ -38,17 +38,15 @@ ipcMain.handle('selectFolder', async () => {
 
   const folderPath = result.filePaths[0];
   const files = fs.readdirSync(folderPath)
-    .filter(file => file.endsWith('.mp3'))  // Фильтруем только MP3 файлы
     .map(file => path.join(folderPath, file));
 
-  return files;
+  return { folderPath, files };
 });
 
 // Обработчик для загрузки файлов из папки
 ipcMain.handle('loadFolderFiles', async (event, folderPath) => {
   try {
     const files = fs.readdirSync(folderPath)
-      .filter(file => file.endsWith('.mp3'))  // Фильтруем только MP3 файлы
       .map(file => path.join(folderPath, file));
 
     return files;
