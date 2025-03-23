@@ -4,6 +4,14 @@ let currentTrackIndex = 0;  // Индекс текущего трека
 let isPlaying = false;
 
 document.addEventListener('DOMContentLoaded', async () => {
+  // Initialize tooltips
+  tippy('[data-tippy-content]', {
+    theme: 'light',
+    placement: 'bottom',
+    arrow: true,
+    delay: [200, 0]
+  });
+
   // Инициализируем tippy
   tippy.setDefaultProps({
     delay: [200, 0],
