@@ -68,6 +68,20 @@
     #selectFolder:hover {
       background-color: #555;
     }
+
+    #history {
+      margin-top: 20px;
+      width: 100%;
+      max-width: 600px;
+      padding: 10px;
+      background-color: #333;
+      border-radius: 5px;
+    }
+
+    #history div {
+      padding: 5px;
+      color: #aaa;
+    }
   </style>
 </head>
 <body>
@@ -77,7 +91,9 @@
     <button id="selectFolder">Выбрать папку</button>
     <ul id="playlist"></ul>
   </div>
-  
+
+  <div id="history"></div>
+
   <script src="renderer.js"></script>
 </body>
 </html>
