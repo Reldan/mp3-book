@@ -9,6 +9,27 @@
   <script src="https://unpkg.com/tippy.js@6.3.7/dist/tippy-bundle.umd.js"></script>
   <link rel="stylesheet" href="https://unpkg.com/tippy.js@6.3.7/themes/light.css">
   <style>
+    #errorMessage {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(255, 0, 0, 0.8);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 5px;
+      z-index: 1000;
+      display: none;
+      animation: fadeInOut 3s ease-in-out;
+    }
+
+    @keyframes fadeInOut {
+      0% { opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
     body {
       font-family: 'Segoe UI', Arial, sans-serif;
       background: linear-gradient(to bottom, #1a1a1a, #121212);
@@ -305,6 +326,7 @@
   </style>
 </head>
 <body>
+  <div id="errorMessage"></div>
   <div id="playerContainer">
     <audio id="audioPlayer"></audio>
     

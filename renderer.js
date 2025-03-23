@@ -225,21 +225,69 @@ async function loadBookInfo(folderPath, files) {
   }
 }
 
+// Функция для показа сообщения об ошибке
+function showError(message) {
+  const errorElement = document.getElementById('errorMessage');
+  errorElement.textContent = message;
+  errorElement.style.display = 'block';
+  
+  // Скрываем сообщение через 3 секунды
+  setTimeout(() => {
+    errorElement.style.display = 'none';
+  }, 3000);
+}
+
+// Функция для очистки интерфейса
+function clearPlayerState() {
+  const currentTrack = document.getElementById('currentTrack');
+  currentTrack.innerHTML = `
+    <i class="fas fa-book-open"></i>
+    <span>Сейчас играет: нет</span>
+  `;
+  
+  const bookTitle = document.getElementById('bookTitle');
+  bookTitle.textContent = 'Нет выбранной книги';
+  
+  const coverImg = document.getElementById('bookCover');
+  const defaultCover = document.querySelector('.default-cover');
+  coverImg.style.display = 'none';
+  defaultCover.style.display = 'block';
+  
+  document.getElementById('playlist').innerHTML = '';
+  document.getElementById('progress').style.width = '0%';
+}
+
 document.getElementById('selectFolder').addEventListener('click', async () => {
   try {
+    // Останавливаем текущее воспроизведение
+    const audioPlayer = document.getElementById('audioPlayer');
+    audioPlayer.pause();
+    
     const result = await window.electronAPI.selectFolder();
     if (result && result.files.length > 0) {
-      localStorage.setItem('lastFolder', result.folderPath);
-      
       // Фильтруем файлы по типу
       const audioFiles = result.files.filter(file => file.toLowerCase().endsWith('.mp3'));
-      const allFiles = result.files; // Для поиска обложки
       
-      await loadBookInfo(result.folderPath, allFiles);
+      if (audioFiles.length === 0) {
+        showError('В выбранной папке нет аудиофайлов');
+        return;
+      }
+      
+      // Очищаем старые данные
+      clearPlayerState();
+      
+      // Сохраняем новую папку и загружаем данные
+      localStorage.setItem('lastFolder', result.folderPath);
+      await loadBookInfo(result.folderPath, result.files);
       loadPlaylist(audioFiles);
+      
+      // Очищаем сохраненную позицию
+      localStorage.removeItem('lastTrack');
+      localStorage.removeItem('lastPosition');
     }
   } catch (error) {
     console.error('Ошибка при выборе папки:', error);
+    showError('Ошибка при загрузке папки');
   }
 });
 
