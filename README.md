@@ -34,9 +34,9 @@ npm start
 
 1. Click "Select Folder" to choose your audiobook directory.
 2. The player will automatically:
-* Load audio files (.mp3 supported)
-* Display the book cover (if present in the folder)
-* Restore your last listening position
+   * Load audio files (.mp3 supported)
+   * Display the book cover (if present in the folder)
+   * Restore your last listening position
 
 ### Building the Application
 To create a standalone macOS application (.app or .dmg):
@@ -47,21 +47,21 @@ To create a standalone macOS application (.app or .dmg):
 npm run dist
 ```
 3. Find the packaged app in the dist folder:
-* dist/mac/audiobook-player.app — standalone app
-* dist/audiobook-player-1.0.0.dmg — installer (optional)
+   * dist/mac/audiobook-player.app — standalone app
+   * dist/audiobook-player-1.0.0.dmg — installer (optional)
 
 ## Build Requirements
 * Install electron-builder:
 ```bash
 npm install --save-dev electron-builder
+```
 
-### Development
-Built with:
+### Built with:
 
-Electron - Cross-platform desktop app framework
-HTML/CSS/JavaScript - Core web technologies
-FontAwesome - Icons for a polished UI
-Tippy.js - Lightweight tooltips
+* Electron - Cross-platform desktop app framework
+* HTML/CSS/JavaScript - Core web technologies
+* FontAwesome - Icons for a polished UI
+* Tippy.js - Lightweight tooltips
 
 ## License
 MIT License - feel free to use, modify, and distribute!
