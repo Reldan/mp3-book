@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (lastFolder) {
     try {
       const allFiles = await window.electronAPI.loadFolderFiles(lastFolder);
-      console.log('Загруженные файлы:', allFiles);
+      console.log('Loaded files:', allFiles);
       
       // Фильтруем файлы по типу
       const audioFiles = allFiles.filter(file => file.toLowerCase().endsWith('.mp3'));
@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       await loadBookInfo(lastFolder, allFiles);  // Загружаем информацию о книге
       loadPlaylist(audioFiles);  // Загружаем только аудио файлы в плейлист
     } catch (error) {
-      console.error('Ошибка при загрузке файлов:', error);
+      console.error('Error loading files:', error);
     }
   }
 
@@ -246,13 +246,13 @@ async function loadBookInfo(folderPath, files) {
     
     // Обработка загрузки изображения
     coverImg.onload = () => {
-      console.log('Обложка успешно загружена');
+      console.log('Cover image loaded successfully');
       coverImg.style.display = 'block';
       defaultCover.style.display = 'none';
     };
     
     coverImg.onerror = (error) => {
-      console.error('Ошибка загрузки обложки:', error);
+      console.error('Error loading cover:', error);
       coverImg.style.display = 'none';
       defaultCover.style.display = 'block';
     };
@@ -281,11 +281,11 @@ function clearPlayerState() {
   const currentTrack = document.getElementById('currentTrack');
   currentTrack.innerHTML = `
     <i class="fas fa-book-open"></i>
-    <span>Сейчас играет: нет</span>
+    <span>Now Playing: none</span>
   `;
   
   const bookTitle = document.getElementById('bookTitle');
-  bookTitle.textContent = 'Нет выбранной книги';
+  bookTitle.textContent = 'No Book Selected';
   
   const coverImg = document.getElementById('bookCover');
   const defaultCover = document.querySelector('.default-cover');
@@ -308,7 +308,7 @@ document.getElementById('selectFolder').addEventListener('click', async () => {
       const audioFiles = result.files.filter(file => file.toLowerCase().endsWith('.mp3'));
       
       if (audioFiles.length === 0) {
-        showError('В выбранной папке нет аудиофайлов');
+        showError('No audio files found in the selected folder');
         return;
       }
       
@@ -348,8 +348,8 @@ document.getElementById('selectFolder').addEventListener('click', async () => {
       }
     }
   } catch (error) {
-    console.error('Ошибка при выборе папки:', error);
-    showError('Ошибка при загрузке папки');
+    console.error('Error selecting folder:', error);
+    showError('Error loading folder');
   }
 });
 
@@ -369,7 +369,7 @@ function initializePlayerControls() {
     const endTime = new Date().toISOString();
     const cleanPath = audioPlayer.src.replace('file://', '');
     logListeningHistory(cleanPath, endTime, 'end');
-    saveHistoryToUI(cleanPath, endTime, 'Конец');
+    saveHistoryToUI(cleanPath, endTime, 'End');
     playNextTrack();
   });
 }

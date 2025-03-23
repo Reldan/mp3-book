@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Книжный плеер</title>
+  <title>Audiobook Player</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <script src="https://unpkg.com/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
   <script src="https://unpkg.com/tippy.js@6.3.7/dist/tippy-bundle.umd.js"></script>
@@ -259,6 +259,19 @@
       transition: all 0.3s ease;
     }
 
+    .buttons .icon-button {
+      flex: 0;
+      width: 36px;
+      height: 36px;
+      padding: 0;
+      border-radius: 50%;
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .buttons .icon-button:hover {
+      background-color: rgba(255, 255, 255, 0.2);
+    }
+
     .buttons button:hover {
       background-color: #1DB954;
       transform: translateY(-2px);
@@ -337,7 +350,7 @@
           <i class="fas fa-book default-cover"></i>
         </div>
         <div class="book-details">
-          <h2 id="bookTitle">Нет выбранной книги</h2>
+          <h2 id="bookTitle">No Book Selected</h2>
           <div id="currentTrack">
             <i class="fas fa-book-open"></i>
             <span>Сейчас играет: нет</span>
@@ -366,11 +379,10 @@
       <div class="buttons">
         <button id="selectFolder">
           <i class="fas fa-folder-open"></i>
-          Выбрать папку
+          Choose Folder
         </button>
-        <button id="toggleHistory">
+        <button id="toggleHistory" class="icon-button" data-tippy-content="Listening History">
           <i class="fas fa-history"></i>
-          История
         </button>
       </div>
       <ul id="playlist"></ul>
