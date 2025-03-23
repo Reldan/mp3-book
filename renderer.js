@@ -32,14 +32,35 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  // Загружаем последний проигрываемый файл
-  const lastTrack = localStorage.getItem('lastTrack');
-  const lastPosition = parseFloat(localStorage.getItem('lastPosition')) || 0;
-  if (lastTrack) {
+  // Загружаем последний проигрываемый файл для этой папки
+  const folderStates = JSON.parse(localStorage.getItem('folderStates') || '{}');
+  const currentFolderState = folderStates[lastFolder];
+  
+  if (currentFolderState && currentFolderState.lastTrack) {
     const playlist = document.getElementById('playlist');
     const items = Array.from(playlist.querySelectorAll('li'));
-    const index = items.findIndex(item => item.dataset.fullPath === lastTrack);
-    playTrack(lastTrack, index, lastPosition);
+    const index = items.findIndex(item => item.dataset.fullPath === currentFolderState.lastTrack);
+    if (index !== -1) {
+      // Загружаем аудио без автовоспроизведения
+      const audioPlayer = document.getElementById('audioPlayer');
+      audioPlayer.src = 'file://' + currentFolderState.lastTrack;
+      audioPlayer.onloadedmetadata = () => {
+        // Устанавливаем позицию и обновляем интерфейс
+        const position = currentFolderState.lastPosition || 0;
+        audioPlayer.currentTime = position;
+        updateProgressBar(position, audioPlayer.duration);
+        
+        // Обновляем интерфейс
+        currentTrackIndex = index;
+        const currentTrack = document.getElementById('currentTrack');
+        const fileName = currentFolderState.lastTrack.split('/').pop();
+        currentTrack.innerHTML = `
+          <i class="fas fa-book-open"></i>
+          <span>${fileName}</span>
+        `;
+        highlightCurrentTrack(currentFolderState.lastTrack);
+      };
+    }
   }
 
   // Добавляем обработчик для кнопки истории
@@ -101,7 +122,17 @@ function playTrack(file, index, startFrom = 0) {
     audioPlayer.play();
   };
 
-  localStorage.setItem('lastTrack', file);
+  // Сохраняем позицию для текущей папки
+  const currentFolder = localStorage.getItem('lastFolder');
+  if (currentFolder) {
+    const folderStates = JSON.parse(localStorage.getItem('folderStates') || '{}');
+    folderStates[currentFolder] = {
+      lastTrack: file,
+      lastPosition: startFrom
+    };
+    localStorage.setItem('folderStates', JSON.stringify(folderStates));
+  }
+
   if (index >= 0) currentTrackIndex = index;
   const currentTrack = document.getElementById('currentTrack');
   const fileName = file.split('/').pop();
@@ -115,7 +146,15 @@ function playTrack(file, index, startFrom = 0) {
 
   // Сохраняем позицию в процессе проигрывания
   audioPlayer.ontimeupdate = () => {
-    localStorage.setItem('lastPosition', audioPlayer.currentTime);
+    const currentFolder = localStorage.getItem('lastFolder');
+    if (currentFolder) {
+      const folderStates = JSON.parse(localStorage.getItem('folderStates') || '{}');
+      folderStates[currentFolder] = {
+        lastTrack: file,
+        lastPosition: audioPlayer.currentTime
+      };
+      localStorage.setItem('folderStates', JSON.stringify(folderStates));
+    }
   };
 
 
@@ -273,17 +312,40 @@ document.getElementById('selectFolder').addEventListener('click', async () => {
         return;
       }
       
-      // Очищаем старые данные
-      clearPlayerState();
-      
       // Сохраняем новую папку и загружаем данные
       localStorage.setItem('lastFolder', result.folderPath);
       await loadBookInfo(result.folderPath, result.files);
       loadPlaylist(audioFiles);
       
-      // Очищаем сохраненную позицию
-      localStorage.removeItem('lastTrack');
-      localStorage.removeItem('lastPosition');
+      // Загружаем сохраненное состояние для этой папки
+      const folderStates = JSON.parse(localStorage.getItem('folderStates') || '{}');
+      const state = folderStates[result.folderPath];
+      
+      if (state && state.lastTrack) {
+        const items = Array.from(document.querySelectorAll('#playlist li'));
+        const index = items.findIndex(item => item.dataset.fullPath === state.lastTrack);
+        
+        if (index !== -1) {
+          // Загружаем аудио без автовоспроизведения
+          audioPlayer.src = 'file://' + state.lastTrack;
+          currentTrackIndex = index;
+          
+          // Обновляем интерфейс
+          const fileName = state.lastTrack.split('/').pop();
+          document.getElementById('currentTrack').innerHTML = `
+            <i class="fas fa-book-open"></i>
+            <span>${fileName}</span>
+          `;
+          highlightCurrentTrack(state.lastTrack);
+          
+          // Устанавливаем позицию после загрузки метаданных
+          audioPlayer.onloadedmetadata = () => {
+            const position = state.lastPosition || 0;
+            audioPlayer.currentTime = position;
+            updateProgressBar(position, audioPlayer.duration);
+          };
+        }
+      }
     }
   } catch (error) {
     console.error('Ошибка при выборе папки:', error);
@@ -312,15 +374,36 @@ function initializePlayerControls() {
   });
 }
 
+// Функция обновления прогресс-бара
+function updateProgressBar(currentTime = 0, duration = 0) {
+  const progress = document.getElementById('progress');
+  if (duration > 0) {
+    const percentage = (currentTime / duration) * 100;
+    progress.style.width = percentage + '%';
+  } else {
+    progress.style.width = '0%';
+  }
+}
+
 function initializeProgressBar() {
   const audioPlayer = document.getElementById('audioPlayer');
   const progressBar = document.getElementById('progressBar');
-  const progress = document.getElementById('progress');
 
   // Обновление прогресс-бара
   audioPlayer.addEventListener('timeupdate', () => {
-    const percent = (audioPlayer.currentTime / audioPlayer.duration) * 100;
-    progress.style.width = percent + '%';
+    updateProgressBar(audioPlayer.currentTime, audioPlayer.duration);
+  });
+
+  // Обновляем прогресс при загрузке метаданных
+  audioPlayer.addEventListener('loadedmetadata', () => {
+    const currentFolder = localStorage.getItem('lastFolder');
+    if (currentFolder) {
+      const folderStates = JSON.parse(localStorage.getItem('folderStates') || '{}');
+      const state = folderStates[currentFolder];
+      if (state && state.lastPosition) {
+        updateProgressBar(state.lastPosition, audioPlayer.duration);
+      }
+    }
   });
 
   // Перемотка по клику
