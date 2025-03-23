@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     delay: [200, 0]
   });
 
-  // Инициализируем tippy
+  // // Инициализируем tippy
   tippy.setDefaultProps({
     delay: [200, 0],
     theme: 'light',
@@ -28,7 +28,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (lastFolder) {
     try {
       const allFiles = await window.electronAPI.loadFolderFiles(lastFolder);
-      console.log('Loaded files:', allFiles);
       
       // Фильтруем файлы по типу
       const audioFiles = allFiles.filter(file => file.toLowerCase().endsWith('.mp3'));
@@ -103,12 +102,10 @@ function loadPlaylist(files) {
     // Добавляем атрибут для тултипа
     li.setAttribute('data-tippy-content', fileName);
     li.setAttribute('data-tippy-placement', 'right');
+    tippy(li);
 
     playlist.appendChild(li);
   });
-
-  // Инициализируем тултипы для всех элементов плейлиста
-  tippy('[data-tippy-content]');
 }
 
 // Функция для проигрывания файла
@@ -214,29 +211,16 @@ function loadListeningHistory() {
 // Кнопка выбора папки
 // Функция загрузки информации о книге
 async function loadBookInfo(folderPath, files) {
-  console.log('Загружаем информацию о книге:');
-  console.log('Путь к папке:', folderPath);
-  console.log('Список файлов:', files);
-  
   // Получаем название книги из последней папки в пути
   const bookTitle = folderPath.split('/').pop();
   document.getElementById('bookTitle').textContent = bookTitle;
 
-  // Ищем файлы обложки
-  console.log('Начинаем поиск изображений...');
-  
   const imageFiles = files.filter(file => {
-    console.log('Проверяем файл:', file);
-    console.log('Расширение:', file.split('.').pop().toLowerCase());
-    
     // Проверяем расширение
     const ext = file.split('.').pop().toLowerCase();
     const isImage = ['jpg', 'jpeg', 'png'].includes(ext);
-    console.log('Это изображение?', isImage);
     return isImage;
   });
-  
-  console.log('Найденные изображения:', imageFiles);
   
   const coverFiles = imageFiles.sort((a, b) => a.localeCompare(b));
 
@@ -246,21 +230,16 @@ async function loadBookInfo(folderPath, files) {
   if (coverFiles.length > 0) {
     // Берем первый (лексиграфически меньший) файл
     const selectedCover = coverFiles[0];
-    console.log('Выбранная обложка:', selectedCover);
     
-    // Добавляем протокол file:// и кодируем URI
     const coverPath = 'file://' + encodeURI(selectedCover);
-    console.log('Полный путь к обложке:', coverPath);
     
     // Обработка загрузки изображения
     coverImg.onload = () => {
-      console.log('Cover image loaded successfully');
       coverImg.style.display = 'block';
       defaultCover.style.display = 'none';
     };
     
     coverImg.onerror = (error) => {
-      console.error('Error loading cover:', error);
       coverImg.style.display = 'none';
       defaultCover.style.display = 'block';
     };
@@ -286,14 +265,11 @@ function showError(message) {
 
 // Функция для очистки интерфейса
 function clearPlayerState() {
-  const currentTrack = document.getElementById('currentTrack');
-  currentTrack.innerHTML = `
+  document.getElementById('currentTrack').innerHTML = `
     <i class="fas fa-book-open"></i>
     <span>Now Playing: none</span>
   `;
-  
-  const bookTitle = document.getElementById('bookTitle');
-  bookTitle.textContent = 'No Book Selected';
+  document.getElementById('bookTitle').textContent = 'No Book Selected';
   
   const coverImg = document.getElementById('bookCover');
   const defaultCover = document.querySelector('.default-cover');
@@ -304,57 +280,50 @@ function clearPlayerState() {
   document.getElementById('progress').style.width = '0%';
 }
 
+// Обработка выбора папки
+async function handleFolderSelection() {
+  const audioPlayer = document.getElementById('audioPlayer');
+  audioPlayer.pause();
+
+  const result = await window.electronAPI.selectFolder();
+  if (!result || result.files.length === 0) return;
+
+  const audioFiles = result.files.filter(file => file.toLowerCase().endsWith('.mp3'));
+  if (audioFiles.length === 0) return showError('No audio files found in the selected folder');
+
+  localStorage.setItem('lastFolder', result.folderPath);
+  await loadBookInfo(result.folderPath, result.files);
+  loadPlaylist(audioFiles);
+
+  const folderStates = JSON.parse(localStorage.getItem('folderStates') || '{}');
+  const state = folderStates[result.folderPath];
+  if (!state || !state.lastTrack) return;
+
+  const playlistItems = Array.from(document.querySelectorAll('#playlist li'));
+  const index = playlistItems.findIndex(item => item.dataset.fullPath === state.lastTrack);
+  if (index === -1) return;
+
+  audioPlayer.src = 'file://' + state.lastTrack;
+  currentTrackIndex = index;
+
+  const fileName = state.lastTrack.split('/').pop();
+  document.getElementById('currentTrack').innerHTML = `
+    <i class="fas fa-book-open"></i>
+    <span>${fileName}</span>
+  `;
+  highlightCurrentTrack(state.lastTrack);
+
+  audioPlayer.onloadedmetadata = () => {
+    const position = state.lastPosition || 0;
+    audioPlayer.currentTime = position;
+    updateProgressBar(position, audioPlayer.duration);
+  };
+}
+
+// Привязка события
 document.getElementById('selectFolder').addEventListener('click', async () => {
   try {
-    // Останавливаем текущее воспроизведение
-    const audioPlayer = document.getElementById('audioPlayer');
-    audioPlayer.pause();
-    
-    const result = await window.electronAPI.selectFolder();
-    if (result && result.files.length > 0) {
-      // Фильтруем файлы по типу
-      const audioFiles = result.files.filter(file => file.toLowerCase().endsWith('.mp3'));
-      
-      if (audioFiles.length === 0) {
-        showError('No audio files found in the selected folder');
-        return;
-      }
-      
-      // Сохраняем новую папку и загружаем данные
-      localStorage.setItem('lastFolder', result.folderPath);
-      await loadBookInfo(result.folderPath, result.files);
-      loadPlaylist(audioFiles);
-      
-      // Загружаем сохраненное состояние для этой папки
-      const folderStates = JSON.parse(localStorage.getItem('folderStates') || '{}');
-      const state = folderStates[result.folderPath];
-      
-      if (state && state.lastTrack) {
-        const items = Array.from(document.querySelectorAll('#playlist li'));
-        const index = items.findIndex(item => item.dataset.fullPath === state.lastTrack);
-        
-        if (index !== -1) {
-          // Загружаем аудио без автовоспроизведения
-          audioPlayer.src = 'file://' + state.lastTrack;
-          currentTrackIndex = index;
-          
-          // Обновляем интерфейс
-          const fileName = state.lastTrack.split('/').pop();
-          document.getElementById('currentTrack').innerHTML = `
-            <i class="fas fa-book-open"></i>
-            <span>${fileName}</span>
-          `;
-          highlightCurrentTrack(state.lastTrack);
-          
-          // Устанавливаем позицию после загрузки метаданных
-          audioPlayer.onloadedmetadata = () => {
-            const position = state.lastPosition || 0;
-            audioPlayer.currentTime = position;
-            updateProgressBar(position, audioPlayer.duration);
-          };
-        }
-      }
-    }
+    await handleFolderSelection();
   } catch (error) {
     console.error('Error selecting folder:', error);
     showError('Error loading folder');
@@ -438,21 +407,23 @@ function togglePlayPause() {
 }
 
 function playPreviousTrack() {
-  if (currentTrackIndex > 0) {
-    const playlist = document.getElementById('playlist');
-    const items = Array.from(playlist.querySelectorAll('li'));
-    currentTrackIndex--;
-    playTrack(items[currentTrackIndex].dataset.fullPath, currentTrackIndex);
+  if (currentTrackIndex <= 0) {
+    return;
   }
+  const playlist = document.getElementById('playlist');
+  const items = Array.from(playlist.querySelectorAll('li'));
+  currentTrackIndex--;
+  playTrack(items[currentTrackIndex].dataset.fullPath, currentTrackIndex);
 }
 
 function playNextTrack() {
   const playlist = document.getElementById('playlist');
   const items = Array.from(playlist.querySelectorAll('li'));
-  if (currentTrackIndex < items.length - 1) {
-    currentTrackIndex++;
-    playTrack(items[currentTrackIndex].dataset.fullPath, currentTrackIndex);
+  if (currentTrackIndex >= items.length - 1) {
+    return;
   }
+  currentTrackIndex++;
+  playTrack(items[currentTrackIndex].dataset.fullPath, currentTrackIndex);
 }
 
 // Сохранение лога в UI
